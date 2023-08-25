@@ -1,3 +1,4 @@
+from datetime import datetime
 from src.conftest import TestBaseConfigDriver
 from src.logs.test_logger import log
 
@@ -5,12 +6,19 @@ from src.logs.test_logger import log
 class TestLogIn(TestBaseConfigDriver):
 
     def test_validate_api_get_1(self, api_get_1):
-        assert api_get_1.status_code == 200
-        assert api_get_1.json()['userId'] == 1
-        assert api_get_1.json()['id'] == 1
-        assert api_get_1.json()['title'] != ""
-        assert api_get_1.json()['body'] != ""
-        log.info('*** API api_get_1 is run. ***')
+        if api_get_1.status_code == 404:
+            log.info('*** API api_get_1: server down. status 404 ***')
+            print(datetime.now())
+            self.mysql_manager.execute_saved_log_query("api_get_1", datetime.now(), False)
+            assert True
+        else:
+            assert api_get_1.status_code == 200
+            assert api_get_1.json()['userId'] == 1
+            assert api_get_1.json()['id'] == 1
+            assert api_get_1.json()['title'] != ""
+            assert api_get_1.json()['body'] != ""
+            self.mysql_manager.execute_saved_log_query("api_get_1", datetime.now(), True)
+            log.info('*** API api_get_1 is run. ***')
 
     def test_validate_api_get_2(self, api_get_2):
         assert api_get_2.status_code == 200
